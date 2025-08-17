@@ -7,7 +7,7 @@ pipeline {
     }
 
     environment {
-        IMAGE_NAME = "pavanreddych/book-website"   // Change repo name if needed
+        IMAGE_NAME = "pavanreddych/book-website"   // DockerHub repo
         IMAGE_TAG  = "${env.BUILD_NUMBER}"
         SONARQUBE_SERVER = "SonarQube"  // Jenkins SonarQube server name
     }
@@ -20,9 +20,13 @@ pipeline {
             }
         }
 
-        stage('Build Backend with Maven') {
+        stage('Build with Maven') {
             steps {
                 dir('backend') {
+                    bat 'mvn clean package -DskipTests'
+                    bat 'dir target'
+                }
+                dir('frontend') {
                     bat 'mvn clean package -DskipTests'
                     bat 'dir target'
                 }
@@ -34,8 +38,23 @@ pipeline {
                 PATH = "${tool 'Maven3'}/bin;${env.PATH}"
             }
             steps {
-                withSonarQubeEnv('SonarQube') {
-                    bat 'mvn sonar:sonar -Dsonar.projectKey=book-project1 -Dsonar.host.url=http://127.0.0.1:9000/ -Dsonar.login=SonarQube'
+                withSonarQubeEnv("${SONARQUBE_SERVER}") {
+                    dir('backend') {
+                        bat """
+                           mvn sonar:sonar ^
+                              -Dsonar.projectKey=book-backend ^
+                              -Dsonar.host.url=%SONAR_HOST_URL% ^
+                              -Dsonar.login=%SONAR_AUTH_TOKEN%
+                        """
+                    }
+                    dir('frontend') {
+                        bat """
+                           mvn sonar:sonar ^
+                              -Dsonar.projectKey=book-frontend ^
+                              -Dsonar.host.url=%SONAR_HOST_URL% ^
+                              -Dsonar.login=%SONAR_AUTH_TOKEN%
+                        """
+                    }
                 }
             }
         }
@@ -43,7 +62,7 @@ pipeline {
         stage('Prepare Docker Context') {
             steps {
                 dir('backend') {
-                    bat 'copy target\\*.jar ..\\'   // copy jar to root for Docker build
+                    bat 'copy target\\*.jar ..\\'   // copy backend jar to root for Docker build
                 }
                 bat 'dir'
             }
@@ -93,3 +112,4 @@ pipeline {
         }
     }
 }
+
