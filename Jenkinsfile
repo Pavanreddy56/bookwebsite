@@ -34,10 +34,8 @@ pipeline {
                 PATH = "${tool 'Maven3'}/bin;${env.PATH}"
             }
             steps {
-                dir('backend') {
-                    withSonarQubeEnv('SonarQube') {
-                        bat 'mvn sonar:sonar -Dsonar.projectKey=book-website -Dsonar.host.url=http://127.0.0.1:9000/ -Dsonar.login=SonarQube'
-                    }
+                withSonarQubeEnv('SonarQube') {
+                    bat 'mvn sonar:sonar -Dsonar.projectKey=pavansproject1 -Dsonar.host.url=http://127.0.0.1:9000/ -Dsonar.login=SonarQube'
                 }
             }
         }
