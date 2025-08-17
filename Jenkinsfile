@@ -70,8 +70,8 @@ pipeline {
         }
 
         stage('Build Docker Image') {
-            steps {
-                bat "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+             steps {
+                 bat "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} -f backend/Dockerfile ."
             }
         }
 
