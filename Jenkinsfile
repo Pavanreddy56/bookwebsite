@@ -2,14 +2,14 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven3'    // Maven configured in Jenkins
-        jdk 'JDK17'       // JDK configured in Jenkins
+        maven 'Maven3'    // Jenkins Maven installation
+        jdk 'JDK17'       // Jenkins JDK installation
     }
 
     environment {
         IMAGE_NAME = "pavanreddych/book-website"   // DockerHub repo
         IMAGE_TAG  = "${env.BUILD_NUMBER}"
-        SONARQUBE_SERVER = "SonarQube"  // Jenkins SonarQube server name
+        SONARQUBE_SERVER = "SonarQube"             // Jenkins SonarQube server config name
     }
 
     stages {
@@ -20,23 +20,15 @@ pipeline {
             }
         }
 
-        stage('Build with Maven') {
+        stage('Build Backend with Maven') {
             steps {
                 dir('backend') {
                     bat 'mvn clean package -DskipTests'
-                    bat 'dir target'
-                }
-                dir('frontend') {
-                    bat 'mvn clean package -DskipTests'
-                    bat 'dir target'
                 }
             }
         }
 
         stage('SonarQube Analysis') {
-            environment {
-                PATH = "${tool 'Maven3'}/bin;${env.PATH}"
-            }
             steps {
                 withSonarQubeEnv("${SONARQUBE_SERVER}") {
                     dir('backend') {
@@ -61,18 +53,23 @@ pipeline {
 
         stage('Prepare Docker Context') {
             steps {
-                dir('backend') {
-                    bat 'copy target\\*.jar ..\\'   // copy backend jar to root for Docker build
+                script {
+                    // Copy backend jar to root
+                    dir('backend') {
+                        bat 'copy target\\*.jar ..\\'
+                    }
+                    // Copy frontend app to root/frontend
+                    dir('frontend') {
+                        bat 'xcopy /E /I /Y . ..\\frontend'
+                    }
+                    bat 'dir'
                 }
-                bat 'dir'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    bat "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
-                }
+                bat "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
             }
         }
 
@@ -89,7 +86,7 @@ pipeline {
             }
         }
 
-        stage('Deploying App to Kubernetes') {
+        stage('Deploy to Kubernetes') {
             steps {
                 withEnv(["KUBECONFIG=C:/Users/cheed/.kube/config"]) {
                     bat 'kubectl apply -f k8s/mysql-configmap.yaml || exit 0'
