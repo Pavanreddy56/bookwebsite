@@ -2,18 +2,18 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven3'    // Jenkins Maven installation
-        jdk 'JDK17'       // Jenkins JDK installation
+        maven 'Maven3'
+        jdk 'JDK17'
     }
 
     environment {
-        IMAGE_NAME = "pavanreddych/book-website"   // DockerHub repo
+        BACKEND_IMAGE = "pavanreddych/book-website-backend"
+        FRONTEND_IMAGE = "pavanreddych/book-website-frontend"
         IMAGE_TAG  = "${env.BUILD_NUMBER}"
-        SONARQUBE_SERVER = "SonarQube"             // Jenkins SonarQube server config name
+        SONARQUBE_SERVER = "SonarQube"
     }
 
     stages {
-
         stage('Checkout Source') {
             steps {
                 git branch: 'main', url: 'https://github.com/Pavanreddy56/bookwebsite.git'
@@ -51,66 +51,33 @@ pipeline {
             }
         }
 
-       stage('Prepare Docker Context') {
+        stage('Build Docker Images') {
             steps {
                 script {
-                    // Copy backend JAR to root
                     dir('backend') {
-                        bat 'copy target\\*.jar ..\\'
+                        bat "docker build -t ${BACKEND_IMAGE}:${IMAGE_TAG} -t ${BACKEND_IMAGE}:latest ."
                     }
-
-                    // Copy frontend build output to root/frontend-build
                     dir('frontend') {
-                        bat 'xcopy /E /I /Y target\\* ..\\frontend-build\\'
+                        bat "docker build -t ${FRONTEND_IMAGE}:${IMAGE_TAG} -t ${FRONTEND_IMAGE}:latest ."
                     }
-
-                    bat 'dir'
                 }
             }
         }
 
-        stage('Build Docker Image') {
-             steps {
-                 dir('backend') {
-                     bat "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
-                }
-            }
-        }
-
-        stage('Push Docker Image') {
+        stage('Push Docker Images') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-creds',
                                                   usernameVariable: 'DOCKERHUB_USER',
                                                   passwordVariable: 'DOCKERHUB_PASS')]) {
                     bat "echo %DOCKERHUB_PASS% | docker login -u %DOCKERHUB_USER% --password-stdin"
-                    bat "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
-                    bat "docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest"
-                    bat "docker push ${IMAGE_NAME}:latest"
+                    bat "docker push ${BACKEND_IMAGE}:${IMAGE_TAG}"
+                    bat "docker push ${BACKEND_IMAGE}:latest"
+                    bat "docker push ${FRONTEND_IMAGE}:${IMAGE_TAG}"
+                    bat "docker push ${FRONTEND_IMAGE}:latest"
                 }
             }
-        } 
-
-        stage('Deploy to Kubernetes') {
-            steps {
-                withEnv(["KUBECONFIG=C:/Users/cheed/.kube/config"]) {
-                    bat 'kubectl apply -f k8s/mysql-configmap.yaml || exit 0'
-                    bat 'kubectl apply -f k8s/mysql-deployment.yaml'
-                    bat 'kubectl apply -f k8s/backend-deployment.yaml'
-                    bat 'kubectl apply -f k8s/frontend-deployment.yaml'
-                    bat 'kubectl apply -f k8s/ingress.yaml'
-                }
-            }
-        }
-
-    }
-
-    post {
-        success {
-            echo "✅ Deployment successful: ${IMAGE_NAME}:${IMAGE_TAG}"
-        }
-        failure {
-            echo "❌ Build, analysis, or deployment failed"
         }
     }
 }
+
 
