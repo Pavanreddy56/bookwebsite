@@ -1,0 +1,22 @@
+pipeline {
+  agent any
+  stages {
+    stage('Install') {
+      steps {
+        dir('frontend') {
+          sh 'npm ci || npm install'
+        }
+      }
+    }
+    stage('Docker Build') {
+      steps {
+        dir('frontend') {
+          script {
+            def img = "book-website-frontend:${env.BUILD_NUMBER}"
+            sh "docker build -t ${img} ."
+          }
+        }
+      }
+    }
+  }
+}

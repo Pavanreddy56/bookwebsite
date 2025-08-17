@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-init-sql
+data:
+  init.sql: |
+    CREATE DATABASE IF NOT EXISTS bookdb;
+    CREATE USER IF NOT EXISTS 'bookuser'@'%' IDENTIFIED BY 'bookpass';
+    GRANT ALL PRIVILEGES ON bookdb.* TO 'bookuser'@'%';
+    FLUSH PRIVILEGES;
