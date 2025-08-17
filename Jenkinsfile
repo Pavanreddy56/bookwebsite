@@ -51,17 +51,19 @@ pipeline {
             }
         }
 
-        stage('Prepare Docker Context') {
+       stage('Prepare Docker Context') {
             steps {
                 script {
-                    // Copy backend jar to root
+                    // Copy backend JAR to root
                     dir('backend') {
                         bat 'copy target\\*.jar ..\\'
                     }
-                    // Copy frontend app to root/frontend
+
+                    // Copy frontend build output to root/frontend-build
                     dir('frontend') {
-                        bat 'xcopy /E /I /Y . ..\\frontend'
+                        bat 'xcopy /E /I /Y target\\* ..\\frontend-build\\'
                     }
+
                     bat 'dir'
                 }
             }
