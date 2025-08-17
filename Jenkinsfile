@@ -86,7 +86,7 @@ pipeline {
                     bat "docker push ${IMAGE_NAME}:latest"
                 }
             }
-        }
+        } 
 
         stage('Deploy to Kubernetes') {
             steps {
