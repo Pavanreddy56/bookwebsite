@@ -71,7 +71,9 @@ pipeline {
 
         stage('Build Docker Image') {
              steps {
-                 bat "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} -f backend/Dockerfile ."
+                 dir('backend') {
+                     bat "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+                }
             }
         }
 
