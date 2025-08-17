@@ -16,7 +16,7 @@ pipeline {
 
         stage('Checkout Source') {
             steps {
-                git branch: 'main', url: 'https://github.com/Pavanreddy56/book-website.git'
+                git branch: 'main', url: 'https://github.com/Pavanreddy56/bookwebsite.git'
             }
         }
 
