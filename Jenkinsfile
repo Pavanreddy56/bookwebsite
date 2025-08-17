@@ -36,7 +36,7 @@ pipeline {
             steps {
                 dir('backend') {
                     withSonarQubeEnv('SonarQube') {
-                        bat 'mvn sonar:sonar -Dsonar.projectKey=book-website -Dsonar.host.url=http://127.0.0.1:63488/ -Dsonar.login=SonarQube'
+                        bat 'mvn sonar:sonar -Dsonar.projectKey=book-website -Dsonar.host.url=http://127.0.0.1:9000/ -Dsonar.login=SonarQube'
                     }
                 }
             }
