@@ -52,7 +52,8 @@ public class BookController {
         Path path = fileStorageService.resolve(b.getFilename());
         Resource res = new UrlResource(path.toUri());
         return ResponseEntity.ok()
-            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename="" + b.getFilename() + """)
+            .header(HttpHeaders.CONTENT_DISPOSITION,
+                    String.format("attachment; filename=\"%s\"", b.getFilename()))
             .contentType(MediaType.APPLICATION_OCTET_STREAM)
             .body(res);
     }
@@ -62,3 +63,4 @@ public class BookController {
         bookService.delete(id);
     }
 }
+
