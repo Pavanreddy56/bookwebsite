@@ -35,7 +35,7 @@ pipeline {
             }
             steps {
                 withSonarQubeEnv('SonarQube') {
-                    bat 'mvn sonar:sonar -Dsonar.projectKey=pavansproject1 -Dsonar.host.url=http://127.0.0.1:9000/ -Dsonar.login=SonarQube'
+                    bat 'mvn sonar:sonar -Dsonar.projectKey=bookwebsite -Dsonar.host.url=http://127.0.0.1:9000/ -Dsonar.login=SonarQube'
                 }
             }
         }
